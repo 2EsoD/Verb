@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Els verbs · Exercicis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --negre: #000;
+  --blanc: #f4f4f4;
+  --text: #1c1c1c;
+  --bé: #1b7a3d;
+  --malament: #b3261e;
+  --gris: #d8d8d8;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Open Sans", system-ui, sans-serif;
+  color: var(--text);
+  background: linear-gradient(135deg, #fff, #ececec);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+.banda {
+  background: var(--negre);
+  color: #fff;
+  border-radius: 0 0 0 60px;
+  padding: 1.4rem 1.5rem 1.4rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.banda h1 { font-family: "Lilita One", sans-serif; font-weight: 400; font-size: 2.4rem; margin: 0; letter-spacing: .03em; }
+.autors { font-style: italic; opacity: .85; }
+main { max-width: 680px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+h2 { font-size: 1.5rem; line-height: 1.3; margin: .5rem 0 1rem; }
+.temes { display: grid; gap: .75rem; margin-top: 1.5rem; }
+button {
+  font: inherit; cursor: pointer; border: 2px solid var(--negre);
+  background: #fff; color: var(--text); padding: .8rem 1.2rem;
+  border-radius: 999px; text-align: left; transition: background .15s, color .15s;
+}
+button:hover:not(:disabled) { background: var(--negre); color: #fff; }
+button:focus-visible, input:focus-visible { outline: 3px solid #f5c400; outline-offset: 2px; }
+button.primari { background: var(--negre); color: #fff; text-align: center; margin-top: 1rem; }
+button.primari:hover { background: #333; }
+.temes button small { opacity: .65; margin-left: .5rem; }
+.progres { height: 8px; background: var(--gris); border-radius: 99px; overflow: hidden; }
+#barra { height: 100%; width: 0; background: var(--negre); transition: width .3s; }
+.meta { color: #555; margin: .6rem 0 0; font-size: .9rem; }
+.opcions { display: grid; gap: .6rem; }
+.opcions button.correcta { background: var(--bé); border-color: var(--bé); color: #fff; }
+.opcions button.incorrecta { background: var(--malament); border-color: var(--malament); color: #fff; }
+.opcions button:disabled { cursor: default; }
+.escriure { display: flex; gap: .6rem; flex-wrap: wrap; }
+.escriure input {
+  flex: 1 1 200px; font: inherit; padding: .8rem 1.2rem;
+  border: 2px solid var(--negre); border-radius: 999px;
+}
+.escriure .primari { margin-top: 0; }
+#feedback { min-height: 1.6em; font-weight: 600; margin: 1rem 0 0; }
+#feedback.bé { color: var(--bé); }
+#feedback.malament { color: var(--malament); }
+#final button + button { margin-left: .5rem; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+  <header class="banda">
+    <h1>Els verbs</h1>
+    <span class="autors">Àlex B, Amin i Luca</span>
+  </header>
+
+  <main>
+    <section id="inici">
+      <h2>Posa a prova què saps dels verbs</h2>
+      <p>Tria un tema o fes tots els exercicis de cop.</p>
+      <div id="temes" class="temes"></div>
+    </section>
+
+    <section id="joc" hidden>
+      <div class="progres"><div id="barra"></div></div>
+      <p id="comptador" class="meta"></p>
+      <h2 id="pregunta"></h2>
+      <div id="opcions" class="opcions"></div>
+      <div id="escriure" class="escriure" hidden>
+        <input id="resposta" type="text" autocomplete="off" aria-label="La teva resposta">
+        <button id="comprova" class="primari">Comprova</button>
+      </div>
+      <p id="feedback" role="status"></p>
+      <button id="seguent" class="primari" hidden>Següent</button>
+    </section>
+
+    <section id="final" hidden>
+      <h2>Has encertat <span id="punts"></span></h2>
+      <p id="missatge"></p>
+      <button id="repeteix" class="primari">Torna-ho a provar</button>
+      <button id="menu">Triar un altre tema</button>
+    </section>
+  </main>
+
+  <script>
+// ---------- Preguntes (basades en la presentació "Els verbs") ----------
+// tipus "o" = opcions; tipus "e" = escriure (respostes acceptades a "ok")
+const TEMES = {
+  "Definició i ús": [
+    { t: "o", q: "Què expressa un verb?", op: ["Una acció, un estat o un procés", "Només accions", "Una qualitat del nom", "Una relació entre paraules"], ok: 0, ex: "El verb expressa una acció (córrer), un estat (estar) o un procés (créixer)." },
+    { t: "o", q: "«Créixer» expressa…", op: ["Una acció", "Un estat", "Un procés", "Una qualitat"], ok: 2, ex: "Créixer és un procés." },
+    { t: "o", q: "«Estar» expressa…", op: ["Un procés", "Un estat", "Una acció", "Un lloc"], ok: 1, ex: "Estar expressa un estat." },
+    { t: "o", q: "El verb és una categoria gramatical…", op: ["Invariable", "Variable", "Només de nombre", "Que no té flexió"], ok: 1, ex: "El verb és variable: canvia de forma segons persona, nombre, temps, mode i aspecte." },
+    { t: "o", q: "El verb és el nucli de…", op: ["El subjecte", "El predicat", "El complement del nom", "L'adjectiu"], ok: 1, ex: "El verb és el nucli del predicat de l'oració." }
+  ],
+  "Lexema i morfema": [
+    { t: "o", q: "Quina part del verb aporta el significat principal?", op: ["El morfema", "El lexema", "El predicat", "El sufix de nombre"], ok: 1, ex: "El lexema aporta el significat principal." },
+    { t: "o", q: "Quina part indica la conjugació i les formes verbals?", op: ["El lexema", "El morfema", "L'arrel", "El nucli"], ok: 1, ex: "El morfema indica la conjugació i les formes verbals." },
+    { t: "e", q: "Escriu el lexema del verb «cantem».", ok: ["cant"], ex: "El lexema de «cantem» és cant-." },
+    { t: "e", q: "Escriu el morfema de «cantem».", ok: ["em"], ex: "El morfema de «cantem» és -em." },
+    { t: "o", q: "Quins són els modes verbals?", op: ["Present, passat i futur", "Indicatiu, subjuntiu i imperatiu", "Singular i plural", "Primera, segona i tercera"], ok: 1, ex: "Els modes són indicatiu, subjuntiu i imperatiu." },
+    { t: "o", q: "Quins són els temps verbals bàsics?", op: ["Present, passat i futur", "Indicatiu, subjuntiu i imperatiu", "Singular i plural", "Acció, estat i procés"], ok: 0, ex: "Els temps són present, passat i futur." }
+  ],
+  "Classificació": [
+    { t: "o", q: "«Cantar» és de la…", op: ["1a conjugació", "2a conjugació", "3a conjugació", "No té conjugació"], ok: 0, ex: "Els verbs acabats en -ar són de la 1a conjugació." },
+    { t: "o", q: "«Perdre» és de la…", op: ["1a conjugació", "2a conjugació", "3a conjugació", "No té conjugació"], ok: 1, ex: "Els verbs acabats en -er o -re són de la 2a conjugació." },
+    { t: "o", q: "«Dormir» és de la…", op: ["1a conjugació", "2a conjugació", "3a conjugació", "No té conjugació"], ok: 2, ex: "Els verbs acabats en -ir són de la 3a conjugació." },
+    { t: "o", q: "Quins són verbs copulatius?", op: ["Cantar, dormir, perdre", "Ser, estar, semblar", "Créixer, córrer, jugar", "Témer, perdre, cantar"], ok: 1, ex: "Ser, estar i semblar són copulatius. La resta són predicatius." },
+    { t: "o", q: "Segons la forma, els verbs poden ser…", op: ["Regulars i irregulars", "Copulatius i predicatius", "Personals i impersonals", "Variables i invariables"], ok: 2, ex: "Segons la forma: personals i impersonals." },
+    { t: "o", q: "Segons la conjugació verbal, els verbs poden ser…", op: ["Regulars i irregulars", "Copulatius i predicatius", "Personals i impersonals", "De 1a i 2a persona"], ok: 0, ex: "Segons la conjugació verbal: regulars i irregulars." }
+  ],
+  "Funció sintàctica": [
+    { t: "e", q: "A «La Maria estudia matemàtiques», quin és el nucli del predicat?", ok: ["estudia"], ex: "El nucli del predicat és «estudia»." },
+    { t: "o", q: "A «La Maria estudia matemàtiques», quin és el subjecte?", op: ["La Maria", "estudia", "matemàtiques", "estudia matemàtiques"], ok: 0, ex: "El subjecte és «La Maria»." },
+    { t: "o", q: "A «La Maria estudia matemàtiques», quin és el predicat?", op: ["La Maria", "estudia", "matemàtiques", "estudia matemàtiques"], ok: 3, ex: "El predicat és «estudia matemàtiques»." }
+  ],
+  "Exemples": [
+    { t: "o", q: "«Nosaltres juguem» és…", op: ["Primera persona del plural del present d'indicatiu", "Tercera persona del plural del present d'indicatiu", "Primera persona del singular del present d'indicatiu", "Primera persona del plural de l'imperfet d'indicatiu"], ok: 0, ex: "Nosaltres juguem: 1a persona del plural del present d'indicatiu." },
+    { t: "o", q: "«Ells dormien» és…", op: ["Tercera persona del plural del present d'indicatiu", "Tercera persona del plural de l'imperfet d'indicatiu", "Tercera persona del singular de l'imperfet d'indicatiu", "Primera persona del plural de l'imperfet d'indicatiu"], ok: 1, ex: "Ells dormien: 3a persona del plural de l'imperfet d'indicatiu." },
+    { t: "o", q: "Quina d'aquestes parelles és correcta?", op: ["Cantar: estat", "Estar: procés", "Créixer: procés", "Estar: acció"], ok: 2, ex: "Cantar és una acció, estar un estat i créixer un procés." }
+  ]
+};
+
+// ---------- Estat i elements ----------
+const $ = id => document.getElementById(id);
+let preguntes = [], i = 0, encerts = 0, tema = null;
+
+const barategem = a => [...a].sort(() => Math.random() - 0.5);
+const neteja = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[-«»"'\s]/g, "");
+
+function mostra(id) {
+  ["inici", "joc", "final"].forEach(s => $(s).hidden = s !== id);
+}
+
+function pintaTemes() {
+  const cont = $("temes");
+  cont.innerHTML = "";
+  const tots = document.createElement("button");
+  tots.className = "primari";
+  tots.textContent = "Tots els temes";
+  tots.onclick = () => comença(null);
+  cont.appendChild(tots);
+  Object.keys(TEMES).forEach(nom => {
+    const b = document.createElement("button");
+    b.innerHTML = `${nom}<small>${TEMES[nom].length} preguntes</small>`;
+    b.onclick = () => comença(nom);
+    cont.appendChild(b);
+  });
+}
+
+function comença(nom) {
+  tema = nom;
+  const origen = nom ? TEMES[nom] : Object.values(TEMES).flat();
+  preguntes = barategem(origen);
+  i = 0; encerts = 0;
+  mostra("joc");
+  pinta();
+}
+
+function pinta() {
+  const p = preguntes[i];
+  $("comptador").textContent = `Pregunta ${i + 1} de ${preguntes.length}`;
+  $("barra").style.width = `${(i / preguntes.length) * 100}%`;
+  $("pregunta").textContent = p.q;
+  $("feedback").textContent = ""; $("feedback").className = "";
+  $("seguent").hidden = true;
+  const op = $("opcions"); op.innerHTML = "";
+  if (p.t === "o") {
+    $("escriure").hidden = true;
+    p.op.forEach((text, n) => {
+      const b = document.createElement("button");
+      b.textContent = text;
+      b.onclick = () => respon(n === p.ok, b);
+      op.appendChild(b);
+    });
+  } else {
+    $("escriure").hidden = false;
+    $("resposta").value = ""; $("resposta").disabled = false;
+    $("comprova").disabled = false;
+    $("resposta").focus();
+  }
+}
+
+function respon(correcte, botó) {
+  const p = preguntes[i];
+  if (correcte) encerts++;
+  if (p.t === "o") {
+    const bs = [...$("opcions").children];
+    bs.forEach((b, n) => { b.disabled = true; if (n === p.ok) b.classList.add("correcta"); });
+    if (!correcte) botó.classList.add("incorrecta");
+  } else {
+    $("resposta").disabled = true; $("comprova").disabled = true;
+  }
+  $("feedback").className = correcte ? "bé" : "malament";
+  $("feedback").textContent = (correcte ? "Correcte. " : "Incorrecte. ") + p.ex;
+  $("seguent").textContent = i + 1 === preguntes.length ? "Veure el resultat" : "Següent";
+  $("seguent").hidden = false;
+  $("seguent").focus();
+}
+
+$("comprova").onclick = () => {
+  const v = neteja($("resposta").value);
+  if (!v) return;
+  respon(preguntes[i].ok.map(neteja).includes(v));
+};
+$("resposta").addEventListener("keydown", e => { if (e.key === "Enter") $("comprova").click(); });
+
+$("seguent").onclick = () => {
+  i++;
+  if (i < preguntes.length) return pinta();
+  $("punts").textContent = `${encerts} de ${preguntes.length}`;
+  const pct = encerts / preguntes.length;
+  $("missatge").textContent = pct === 1 ? "Perfecte! Domines els verbs."
+    : pct >= 0.7 ? "Molt bé! Repassa només els detalls que has fallat."
+    : pct >= 0.5 ? "Vas bé, però convé repassar la presentació."
+    : "Torna a mirar la presentació i prova-ho una altra vegada.";
+  mostra("final");
+};
+
+$("repeteix").onclick = () => comença(tema);
+$("menu").onclick = () => mostra("inici");
+
+pintaTemes();
+</script>
+</body>
+</html>
